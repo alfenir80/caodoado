@@ -1,5 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, FlatList } from "react-native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../navigation/AppNavigator";
+
+type Props = NativeStackScreenProps<RootStackParamList, "Map">;
 
 type CasePin = {
   id: string;
@@ -12,7 +16,7 @@ const mockPins: CasePin[] = [
   { id: "4822", status: "RESOLVIDO" },
 ];
 
-export function MapScreen() {
+export function MapScreen({ navigation }: Props) {
   return (
    <View style={styles.container}>
      <View style={styles.mapBox}>
@@ -32,7 +36,7 @@ export function MapScreen() {
         <Pressable style={styles.filterBtn} onPress={() => console.log("Filter pressed")}>
           <Text style={styles.filterTxt}>Filtrar</Text>
         </Pressable>
-        <Pressable style={styles.fab} onPress={() => console.log("FAB pressed")}>
+        <Pressable style={styles.fab} onPress={() => navigation.navigate("NewCasePhoto")}>
           <Text style={styles.fabTxt}>+</Text>
         </Pressable>
       </View> 
