@@ -13,57 +13,42 @@ export function NewCasePhotoScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tire uma foto do animal</Text>
-
       <View style={styles.previewBox}>
         {photoCount === 0 ? (
           <>
             <Text style={styles.previewTitle}>Nenhuma foto adicionada</Text>
-            <Text style={styles.small}>
-              Toque no botão abaixo para simular a adição de uma foto
-            </Text>
+            <Text style={styles.small}>Toque no botão abaixo para simular a adição de uma foto</Text>
           </>
         ) : (
           <Text style={styles.previewTitle}>{photoCount} foto(s) adicionada(s)</Text>
         )}
       </View>
-
       <View style={styles.row}>
-        <Pressable
-          style={[styles.primaryBtn, photoCount >= 3 && styles.disable]}
-          onPress={addMockPhoto}
-          disabled={photoCount >= 3}
-        >
+        <Pressable style={styles.primaryBtn} onPress={addMockPhoto}>
           <Text style={styles.primaryTxt}>Adicionar Foto</Text>
         </Pressable>
-
-        <Pressable
-          style={[styles.secondBtn, photoCount >= 3 && styles.disable]}
-          onPress={addMockPhoto}
-          disabled={photoCount >= 3}
-        >
+        <Pressable style={styles.secondBtn} onPress={addMockPhoto}>
           <Text style={styles.secondTxt}>Galeria</Text>
         </Pressable>
       </View>
 
-      <View style={styles.spacer} />
+      <View style={{flex: 1, justifyContent: "flex-end"}}/>
+      
+        <Pressable style={[styles.primaryBtn, photoCount === 0 && styles.disable]}
+          disabled={photoCount === 0}
+          onPress={() => navigation.goBack()}>
+          <Text style={styles.primaryTxt}>Continuar</Text>
+        </Pressable>
 
-      <Pressable
-        style={[styles.primaryBtn, photoCount === 0 && styles.disable]}
-        disabled={photoCount === 0}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.primaryTxt}>Continuar</Text>
-      </Pressable>
-
-      <Text style={styles.hint}>
-        * Esta e uma simulacao. Em um app real, aqui seria aberta a camera ou galeria do dispositivo.
-      </Text>
+        <Text style={styles.hint}>* Esta é uma simulação. Em um app real, aqui seria aberta a câmera ou galeria do dispositivo.</Text>
+      
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, gap: 12 },
+  container: { flex: 1, padding: 16,gap: 12 },
   title: { fontSize: 16, fontWeight: "800", color: "#222" },
 
   previewBox: {
@@ -78,7 +63,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   previewTitle: { color: "#555", fontWeight: "900" },
-  small: { color: "#555", textAlign: "center" },
+  small: { color: "#555"},
 
   row: {
     flexDirection: "row",
@@ -107,14 +92,12 @@ const styles = StyleSheet.create({
   },
   secondTxt: { color: "#222", fontWeight: "800" },
 
-  disable: { opacity: 0.35 },
-
-  spacer: { flex: 1, justifyContent: "flex-end" },
+  disable: {opacity: 0.35},
 
   hint: {
     fontSize: 12,
     color: "#777",
     textAlign: "center",
     marginTop: 8,
-  },
-});
+  }, 
+}); 
