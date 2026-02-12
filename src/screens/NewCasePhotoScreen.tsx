@@ -35,8 +35,8 @@ export function NewCasePhotoScreen({ navigation }: Props) {
       <View style={{flex: 1, justifyContent: "flex-end"}}/>
       
         <Pressable style={[styles.primaryBtn, photoCount === 0 && styles.disable]}
-          disabled={photoCount === 0}
-          onPress={() => navigation.goBack()}>
+          //disabled={photoCount === 0}
+          onPress={() => navigation.navigate("NewCaseLocation", { photoCount }) }>
           <Text style={styles.primaryTxt}>Continuar</Text>
         </Pressable>
 
