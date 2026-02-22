@@ -33,7 +33,8 @@ export function NewCaseLocationScreen({ navigation, route }: Props) {
 
       <View style={{ flex: 1}}/>
       
-      <Pressable style={styles.primaryBtn} onPress={() => navigation.goBack()}>
+      <Pressable style={styles.primaryBtn} onPress={() => navigation.navigate("NewCaseSituation", 
+        { photoCount, location: { latitude: lat, longitude: lng } })  }>
         <Text style={styles.primaryTxt}>Continuar</Text>
       </Pressable>
 
