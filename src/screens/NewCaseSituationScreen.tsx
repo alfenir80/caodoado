@@ -50,11 +50,19 @@ export const NewCaseSituationScreen = ({ navigation, route }: Props) => {
         onPress={() => {
           if (!canSubmit) return;
 
-          Alert.alert("Resumo do caso",
+          const caseId = Math.random().toString(36).substring(2, 8).toUpperCase();
+          Alert.alert(
+            "Resumo do caso",
             `Fotos: ${photoCount}\n` +
             `Localização: ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}\n` +
             `Situação: ${selected}\n` +
             `Observações: ${notes || "Nenhuma"}`,
+            [
+              {
+                text: "OK",
+                onPress: () => navigation.navigate("CaseSuccess", { caseId }),
+              },
+            ],
           );
         }}
         disabled={!canSubmit}
