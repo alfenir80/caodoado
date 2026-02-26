@@ -1,14 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
+import { useAppStore } from "../store/AppStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "NewCasePhoto">;
 
 export function NewCasePhotoScreen({ navigation }: Props) {
-  const [photoCount, setPhotoCount] = useState(0);
 
-  const addMockPhoto = () => setPhotoCount((c) => Math.min(c + 1, 3));
+  const { state, dispatch } = useAppStore();
+  const photoCount = state.draft.photoCount;
+
+  const addMockPhoto = () => {
+    dispatch({type: "draft/setPhotoCount", photoCount: photoCount + 1 });
+  }
+
+  const resetPhotos = () => {
+    dispatch({type: "draft/setPhotoCount", photoCount: 0 });    
+  }
 
   return (
     <View style={styles.container}>
@@ -22,6 +31,9 @@ export function NewCasePhotoScreen({ navigation }: Props) {
         ) : (
           <Text style={styles.previewTitle}>{photoCount} foto(s) adicionada(s)</Text>
         )}
+        <Pressable style={styles.resetLink} onPress={resetPhotos}>
+          <Text style={styles.resetText}>Limpar fotos</Text>
+        </Pressable>
       </View>
       <View style={styles.row}>
         <Pressable style={styles.primaryBtn} onPress={addMockPhoto}>
@@ -93,6 +105,21 @@ const styles = StyleSheet.create({
   secondTxt: { color: "#222", fontWeight: "800" },
 
   disable: {opacity: 0.35},
+
+  resetLink: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#eee",
+    borderRadius: 8,  
+    borderWidth: 1,
+    borderColor: "#999",
+  },
+
+  resetText: {
+    color: "#555",
+    fontSize: 14,
+    fontWeight: "600",
+  },
 
   hint: {
     fontSize: 12,
