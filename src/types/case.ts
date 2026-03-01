@@ -1,3 +1,4 @@
+import { NewCaseLocationScreen } from '../screens/NewCaseLocationScreen';
 export type CaseStatus = "ABERTO" | "EM_ANDAMENTO" | "RESOLVIDO";
 
 export type CaseSituation = "Ferido" | "Perdido" | "Abandonado" | "Maus tratos";
@@ -30,4 +31,5 @@ export type NewCaseDraft = {
   };
   situation: CaseSituation | null;
   notes: string;
+  lastCreatedCaseID: string | null;
 };

@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
+import { useAppStore } from "../store/AppStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "NewCaseLocation">;
 
-export function NewCaseLocationScreen({ navigation, route }: Props) {
-  const { photoCount } = route.params;
+export function NewCaseLocationScreen({ navigation }: Props) {
+  const { state, dispatch } = useAppStore();
+  const photoCount = state.draft.photoCount;
 
-  const [lat, setLat] = useState(-23.55052);
-  const [lng, setLng] = useState(-46.633308);
+  const lat = state.draft.location.latitude;
+  const lng = state.draft.location.longitude;
 
   return (
     <View style={styles.container}>
@@ -18,16 +20,19 @@ export function NewCaseLocationScreen({ navigation, route }: Props) {
 
       <View style={styles.mapBox}>
         <Text style={styles.mapTitle}>[MAPA SIMULADO]</Text>
-        <Text style={styles.small}>Latitude: {lat.toFixed(5)} | Longitude: {lng.toFixed(5)}</Text>
-        <Text style={styles.small}>Em um app real, aqui seria exibido um mapa interativo para selecionar a localização do animal.</Text>
+        <Text style={styles.small}>Pin ajustável (mock)</Text>
+        <Text style={styles.small}>
+          Latitude: {lat.toFixed(6)}, Longitude: {lng.toFixed(6)}
+        </Text>
       </View>
 
       <View style={{flex: 1, justifyContent: "flex-end"}}/>
       
       <Pressable style={styles.secondaryBtn} 
-        onPress={() => {
-          setLat((l) => l + 0.001);
-          setLng((l) => l + 0.001);           }}>
+        onPress={
+          () => dispatch({ type: "draft/setLocation", 
+            latitude: -23.55052, longitude: -46.633308 }) 
+        }>
         <Text style={styles.secondaryTxt}>Usar localização atual</Text>
       </Pressable>
 

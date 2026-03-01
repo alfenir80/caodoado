@@ -5,6 +5,7 @@ import type { CaseItem, NewCaseDraft, CaseSituation } from '../types/case';
 type State = {
   cases: CaseItem[];
   draft: NewCaseDraft;
+  lastCreatedCaseID: string | null;
 };
 
 type Action =
@@ -24,6 +25,7 @@ const initialDraft: NewCaseDraft = {
   },
   situation: null,
   notes: "",
+  lastCreatedCaseID: null,
 };
 
 const initialState: State = {
@@ -46,10 +48,11 @@ const initialState: State = {
       updates: [
         { atISO: "2024-06-02T12:00:00Z", text: "Cachorro levado para clínica veterinária." },
         { atISO: "2024-06-03T15:30:00Z", text: "Realizados exames, aguardando resultados." },
-      ],  
+      ],
     }
   ],
   draft: initialDraft,
+  lastCreatedCaseID: null
 };
 
 function genID() {
@@ -80,7 +83,11 @@ function reducer(state: State, action: Action): State {
         location: state.draft.location,
         photosCount: state.draft.photoCount,
       };
-      return { ...state, cases: [...state.cases, newCase], draft: initialDraft };
+      return { 
+              ...state, cases: [...state.cases, newCase], 
+              draft: initialDraft, 
+              lastCreatedCaseID: newCase.id
+             };
     default:
       return state;
   }

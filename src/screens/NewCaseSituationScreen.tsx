@@ -1,7 +1,8 @@
-import React, { useMemo, useState}  from "react";
-import { View, Text, StyleSheet, Pressable, TextInput, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Pressable, TextInput } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
+import { useAppStore } from "../store/AppStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "NewCaseSituation">;
 
@@ -14,58 +15,59 @@ const OPTIONS: Array<{ label: string; value: Situation }> = [
   { label: "Maus tratos", value: "Maus tratos" },
 ];
 
-export const NewCaseSituationScreen = ({ navigation, route }: Props) => {
-  const { photoCount, location } = route.params;
-  const [selected, setSelected] = useState<Situation | null>(null);
-  const [notes, setNotes] = useState("");
+export const NewCaseSituationScreen = ({ navigation }: Props) => {
+ 
+  const { state, dispatch } = useAppStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canSubmit = useMemo(() => {
-    return selected !== null;
-  }, [selected]);
+  const selected = state.draft.situation;
+  const notes = state.draft.notes;
 
+  const canSubmit = selected !== null;
+
+  useEffect(() => {
+    if (!isSubmitting || !state.lastCreatedCaseID) return;
+    navigation.navigate("CaseSuccess", { caseId: state.lastCreatedCaseID });
+    setIsSubmitting(false);
+  }, [isSubmitting, navigation, state.lastCreatedCaseID]);
+
+ 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Qual a situação do animal?</Text>
       <Text style={styles.small}>Selecione a opção que melhor descreve a situação do animal.</Text>
 
       <View style={styles.list}>
-        {OPTIONS.map((option) => (
-          <Pressable key={option.value} style={styles.row} onPress={() => setSelected(option.value)}>
-            <View style={[styles.checkbox, selected === option.value && styles.checkboxOn]} />
-            <Text style={styles.rowText}>{option.label}</Text>
-          </Pressable>
-        ))}
+        {OPTIONS.map((option) => {
+          const isSelected = selected === option.value;
+          return (
+            <Pressable 
+              key={option.value} 
+              style={styles.row} 
+              onPress={() => dispatch({ type: "draft/setSituation", situation: option.value })}>
+              <View style={[styles.checkbox, isSelected && styles.checkboxOn]} />
+              <Text style={styles.rowText}>{option.label}</Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <TextInput 
         placeholder="Observações adicionais (opcional)"
         style={styles.input}
         value={notes}
-        onChangeText={setNotes}
+        onChangeText={(text) => dispatch({ type: "draft/setNotes", notes: text })}
         multiline
       />
 
       <Pressable 
-        style={[styles.primaryButton, !canSubmit && styles.disable]} 
+        style={[styles.primaryButton, !canSubmit && styles.disable]}
+        disabled={!canSubmit}
         onPress={() => {
           if (!canSubmit) return;
-
-          const caseId = Math.random().toString(36).substring(2, 8).toUpperCase();
-          Alert.alert(
-            "Resumo do caso",
-            `Fotos: ${photoCount}\n` +
-            `Localização: ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}\n` +
-            `Situação: ${selected}\n` +
-            `Observações: ${notes || "Nenhuma"}`,
-            [
-              {
-                text: "OK",
-                onPress: () => navigation.navigate("CaseSuccess", { caseId }),
-              },
-            ],
-          );
+          setIsSubmitting(true);
+          dispatch({ type: "cases/addFormDraft" });
         }}
-        disabled={!canSubmit}
       >
         <Text style={styles.primaryText}>Enviar caso</Text>
       </Pressable>
