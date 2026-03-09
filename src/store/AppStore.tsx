@@ -14,7 +14,7 @@ type Action =
   | { type: "draft/setNotes"; notes: string }
   | { type: "draft/setLocation"; latitude: number; longitude: number }
   | { type: "draft/reset" }
-  | { type: "cases/addFormDraft"};
+  | { type: "cases/addFormDraft"; preGenerateID: string };
 
 
 const initialDraft: NewCaseDraft = {
@@ -25,7 +25,7 @@ const initialDraft: NewCaseDraft = {
   },
   situation: null,
   notes: "",
-  lastCreatedCaseID: null,
+ //lastCreatedCaseID: null,
 };
 
 const initialState: State = {
@@ -59,6 +59,10 @@ function genID() {
   return Math.random().toString(36).substr(2, 9);
 }
 
+function isValidLocation(lat: number, lon: number): boolean {
+  return lat !== 0 && lon !== 0;
+}
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "draft/setPhotoCount":
@@ -74,8 +78,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, draft: initialDraft };
     case "cases/addFormDraft":
       if (!state.draft.situation) return state; // situation is required
+      if (!isValidLocation(state.draft.location.latitude, state.draft.location.longitude))
+         return state; // valid location is required
       const newCase: CaseItem = {
-        id: genID(),
+        id: action.preGenerateID,
         status: "ABERTO",
         situation: state.draft.situation,
         notes: state.draft.notes,

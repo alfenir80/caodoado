@@ -18,19 +18,18 @@ const OPTIONS: Array<{ label: string; value: Situation }> = [
 export const NewCaseSituationScreen = ({ navigation }: Props) => {
  
   const { state, dispatch } = useAppStore();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selected = state.draft.situation;
   const notes = state.draft.notes;
 
   const canSubmit = selected !== null;
 
-  useEffect(() => {
-    if (!isSubmitting || !state.lastCreatedCaseID) return;
-    navigation.navigate("CaseSuccess", { caseId: state.lastCreatedCaseID });
-    setIsSubmitting(false);
-  }, [isSubmitting, navigation, state.lastCreatedCaseID]);
-
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    const newID = Math.random().toString(36).substring(2, 9);
+    dispatch({ type: "cases/addFormDraft", preGenerateID: newID });
+    navigation.navigate("CaseSuccess", { caseId: newID });
+  }
  
   return (
     <View style={styles.container}>
@@ -63,11 +62,7 @@ export const NewCaseSituationScreen = ({ navigation }: Props) => {
       <Pressable 
         style={[styles.primaryButton, !canSubmit && styles.disable]}
         disabled={!canSubmit}
-        onPress={() => {
-          if (!canSubmit) return;
-          setIsSubmitting(true);
-          dispatch({ type: "cases/addFormDraft" });
-        }}
+        onPress={handleSubmit}
       >
         <Text style={styles.primaryText}>Enviar caso</Text>
       </Pressable>

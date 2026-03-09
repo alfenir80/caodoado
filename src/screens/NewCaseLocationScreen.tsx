@@ -13,6 +13,8 @@ export function NewCaseLocationScreen({ navigation }: Props) {
   const lat = state.draft.location.latitude;
   const lng = state.draft.location.longitude;
 
+  const hasValidLocation = lat !== 0 && lng !== 0;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Selecione a localização do animal</Text>
@@ -22,7 +24,9 @@ export function NewCaseLocationScreen({ navigation }: Props) {
         <Text style={styles.mapTitle}>[MAPA SIMULADO]</Text>
         <Text style={styles.small}>Pin ajustável (mock)</Text>
         <Text style={styles.small}>
-          Latitude: {lat.toFixed(6)}, Longitude: {lng.toFixed(6)}
+          {hasValidLocation
+            ? `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`
+            : "Nenhuma localização selecionada"}
         </Text>
       </View>
 
@@ -38,10 +42,17 @@ export function NewCaseLocationScreen({ navigation }: Props) {
 
       <View style={{ flex: 1}}/>
       
-      <Pressable style={styles.primaryBtn} onPress={() => navigation.navigate("NewCaseSituation", 
+      <Pressable style={styles.primaryBtn} 
+        disabled={!hasValidLocation}
+        onPress={() => navigation.navigate("NewCaseSituation", 
         { photoCount, location: { latitude: lat, longitude: lng } })  }>
         <Text style={styles.primaryTxt}>Continuar</Text>
       </Pressable>
+
+      {!hasValidLocation && <Text style={styles.hint}>
+        * Se continuar sem selecionar uma localização válida, a localização do caso será definida como (0,0),
+         o que não é desejável. Por favor, selecione uma localização antes de continuar.
+         </Text>}
 
       <Text style={styles.hint}>* Esta é uma simulação. Em um app real, aqui seria exibido um mapa interativo para selecionar a localização do animal.</Text>
     </View>
