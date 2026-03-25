@@ -9,16 +9,20 @@ type State = {
 };
 
 type Action =
-  | { type: "draft/setPhotoCount"; photoCount: number }
+  | { type: "draft/addPhoto"; photoURI: string }
+  | { type: "draft/removePhoto"; photoURI: string }
+  | { type: "draft/clearPhotos" }
   | { type: "draft/setSituation"; situation: CaseSituation | null }
   | { type: "draft/setNotes"; notes: string }
   | { type: "draft/setLocation"; latitude: number; longitude: number }
   | { type: "draft/reset" }
   | { type: "cases/addFormDraft"; preGenerateID: string };
 
+const MAX_PHOTOS = 3;
+
 
 const initialDraft: NewCaseDraft = {
-  photoCount: 0,
+  photoUris: [],
   location: {
     latitude: 0,
     longitude: 0,
@@ -65,9 +69,15 @@ function isValidLocation(lat: number, lon: number): boolean {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "draft/setPhotoCount":
+    case "draft/addPhoto":
       return { ...state, draft: 
-        { ...state.draft, photoCount: Math.max(0, Math.min(3, action.photoCount)) } };
+        { ...state.draft, photoUris: [...state.draft.photoUris, action.photoURI] } };
+    case "draft/removePhoto":
+      return { ...state, draft: 
+        { ...state.draft, photoUris: state.draft.photoUris.filter(uri => uri !== action.photoURI) } };
+    case "draft/clearPhotos":
+      return { ...state, draft: 
+        { ...state.draft, photoUris: [] } };
     case "draft/setSituation":
       return { ...state, draft: { ...state.draft, situation: action.situation } };
     case "draft/setNotes":
@@ -87,7 +97,8 @@ function reducer(state: State, action: Action): State {
         notes: state.draft.notes,
         createdAtISO: new Date().toISOString(),
         location: state.draft.location,
-        photosCount: state.draft.photoCount,
+        photosCount: state.draft.photoUris.length,
+        photoUris: [...state.draft.photoUris],
       };
       return { 
               ...state, cases: [...state.cases, newCase], 

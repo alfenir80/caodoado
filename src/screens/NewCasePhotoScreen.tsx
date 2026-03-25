@@ -9,14 +9,16 @@ type Props = NativeStackScreenProps<RootStackParamList, "NewCasePhoto">;
 export function NewCasePhotoScreen({ navigation }: Props) {
 
   const { state, dispatch } = useAppStore();
-  const photoCount = state.draft.photoCount;
+  const photoUris = state.draft.photoUris;
+  const canAddMore = photoUris.length < 3;
+  const photoCount = photoUris.length;
 
   const addMockPhoto = () => {
-    dispatch({type: "draft/setPhotoCount", photoCount: photoCount + 1 });
+    dispatch({type: "draft/addPhoto", photoURI: "mock-photo-uri" });
   }
 
   const resetPhotos = () => {
-    dispatch({type: "draft/setPhotoCount", photoCount: 0 });    
+    dispatch({type: "draft/clearPhotos" });    
   }
 
   return (

@@ -13,6 +13,7 @@ export type CaseItem = {
     longitude: number;
   };
   photosCount: number;
+  photoUris?: string[]; // optional, only for drafts  
 
   assignedTo?: {
     name: string;
@@ -23,7 +24,7 @@ export type CaseItem = {
 };
 
 export type NewCaseDraft = {
-  photoCount: number;
+  photoUris: string[];
   location: {
     latitude: number;
     longitude: number;
