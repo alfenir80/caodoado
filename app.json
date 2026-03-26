@@ -13,26 +13,47 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
-    },
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "The app accesses your photo library to let you share photos with your friends.",
+        "NSCameraUsageDescription": "The app accesses your camera to let you take photos and share them with your friends.",
+        "NSLocationWhenInUseUsageDescription": "We need your location to show where the animal was found and to allow people to contact the person responsible for the animal." ,
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location to show where the animal was found and to allow people to contact the person responsible for the animal."  
+      }
+    }, 
+    
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_COARSE_LOCATION",
+        "READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": 
-    [
+    "plugins": [
       [
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends.",
           "cameraPermission": "The app accesses your camera to let you take photos and share them with your friends.  "
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "We need your location to show where the animal was found and to allow people to contact the person responsible for the animal.",
+          "locationWhenInUsePermission": "We need your location to show where the animal was found and to allow people to contact the person responsible for the animal."
         }
       ]
     ]

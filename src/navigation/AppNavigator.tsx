@@ -5,7 +5,7 @@ import { NewCasePhotoScreen } from "../screens/NewCasePhotoScreen";
 import { NewCaseLocationScreen } from "../screens/NewCaseLocationScreen";
 import { NewCaseSituationScreen } from "../screens/NewCaseSituationScreen";
 import { CaseSuccessScreen } from "../screens/CaseSuccessScreen";
-
+import { CaseDetailsScreen } from "../screens/CaseDetailsScreen";
 
 export type RootStackParamList = {
   Map: undefined;
@@ -14,6 +14,7 @@ export type RootStackParamList = {
   NewCaseSituation: { photoCount: number; 
     location: { latitude: number; longitude: number } }; 
   CaseSuccess: { caseId: string }; 
+  CaseDetails: { caseId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -31,6 +32,8 @@ export const AppNavigator = () => {
         options={{ title: "Passo 3/3 - Situação do animal"}}/>
       <Stack.Screen name="CaseSuccess" component={CaseSuccessScreen}
         options={{ title: "Caso registrado com sucesso!"}}/>
+      <Stack.Screen name="CaseDetails" component={CaseDetailsScreen}
+        options={{ title: "Detalhes do caso"}}/>
     </Stack.Navigator>
   );
 };
