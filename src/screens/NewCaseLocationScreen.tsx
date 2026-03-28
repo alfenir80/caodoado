@@ -1,61 +1,172 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert } from "react-native";
+import MapView, { Marker, Region } from "react-native-maps";
+import * as Location from "expo-location";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../store/AppStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "NewCaseLocation">;
 
-export function NewCaseLocationScreen({ navigation }: Props) {
+const DEFAULT_DELTA = { latitudeDelta: 0.01, longitudeDelta: 0.01 };
+
+export function NewCaseLocationScreen({ navigation, route }: Props) {
   const { state, dispatch } = useAppStore();
-  const photoCount = state.draft.photoCount;
+  const { photoCount } = route.params;
+  const mapRef = useRef<MapView>(null);
+
+  const [loadingGPS, setLoadingGPS] = useState(true);
+  const [gpsError, setGPSError] = useState<string | null>(null);
+
 
   const lat = state.draft.location.latitude;
   const lng = state.draft.location.longitude;
 
   const hasValidLocation = lat !== 0 && lng !== 0;
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setGPSError("Permissão de localização negada. Por favor, permita o acesso à localização para usar esta funcionalidade.");
+          setLoadingGPS(false);
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Highest,
+        });
+
+        const { latitude, longitude } = location.coords;
+        dispatch({ type: "draft/setLocation", latitude, longitude });
+
+        // Centralizar o mapa na localização atual
+        if (mapRef.current) {
+          mapRef.current.animateToRegion({
+            latitude,
+            longitude,
+            ...DEFAULT_DELTA,
+          });
+        }
+      } catch (error) {
+        setGPSError("Erro ao obter localização. Por favor, tente novamente.");
+      } finally {
+        setLoadingGPS(false);
+      }
+    })();
+  }, [dispatch]);
+
+  const handleDragMarker = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    dispatch({ type: "draft/setLocation", latitude, longitude });
+  };
+
+  const handleLongPressMap = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    dispatch({ type: "draft/setLocation", latitude, longitude });
+    mapRef.current?.animateToRegion({
+      latitude,
+      longitude,
+      ...DEFAULT_DELTA,
+    }, 400);
+  };
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      setLoadingGPS(true);
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão de localização negada", "Por favor, permita o acesso à localização para usar esta funcionalidade.");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest,
+      });
+
+      const { latitude, longitude } = location.coords;
+      dispatch({ type: "draft/setLocation", latitude, longitude });
+
+      // Centralizar o mapa na localização atual
+      if (mapRef.current) {
+        mapRef.current.animateToRegion({
+          latitude,
+          longitude,
+          ...DEFAULT_DELTA,
+        }, 600);
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Erro ao obter localização. Por favor, tente novamente.");
+    } finally {
+      setLoadingGPS(false);
+    }
+  };
+
+  const initialRegion: Region = {
+    latitude: hasValidLocation ? lat : -23.55052, // São Paulo como fallback
+    longitude: hasValidLocation ? lng : -46.633308,
+    ...DEFAULT_DELTA,
+  };
+
+
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Selecione a localização do animal</Text>
-      <Text style={styles.small}>Fotos enviadas: {photoCount}</Text>
+      <View style={styles.mapWrapper}>
+        {loadingGPS && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#333" />
+            <Text style={styles.loadindTxt}>Obtendo localização...</Text>
+          </View>
+        )}
 
-      <View style={styles.mapBox}>
-        <Text style={styles.mapTitle}>[MAPA SIMULADO]</Text>
-        <Text style={styles.small}>Pin ajustável (mock)</Text>
-        <Text style={styles.small}>
-          {hasValidLocation
-            ? `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`
-            : "Nenhuma localização selecionada"}
-        </Text>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={initialRegion}
+          onLongPress={handleLongPressMap}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+        >
+          {hasValidLocation && (
+            <Marker
+              coordinate={{ latitude: lat, longitude: lng }}
+              draggable
+              onDragEnd={handleDragMarker}
+              pinColor="#444"
+            />
+          )}
+        </MapView>
+
+        <View style={styles.hintBanner}>
+          <Text style={styles.hintBannerTxt}>Arraste o marcador ou toque no mapa para ajustar a localização do caso.</Text>
+        </View>
       </View>
 
-      <View style={{flex: 1, justifyContent: "flex-end"}}/>
-      
-      <Pressable style={styles.secondaryBtn} 
-        onPress={
-          () => dispatch({ type: "draft/setLocation", 
-            latitude: -23.55052, longitude: -46.633308 }) 
-        }>
-        <Text style={styles.secondaryTxt}>Usar localização atual</Text>
+      {gpsError && <Text style={styles.errorTxt}>{gpsError}</Text>}
+
+      <Text style={styles.coords}>Lat: {lat.toFixed(6)} | Lng: {lng.toFixed(6)}</Text>
+
+      <Pressable style={styles.secondaryBtn} onPress={handleUseCurrentLocation} disabled={loadingGPS}>
+        <Text style={styles.secondaryTxt}>
+          {loadingGPS ? "Obtendo localização..." : "Usar minha localização atual"}
+        </Text>
       </Pressable>
 
-      <View style={{ flex: 1}}/>
-      
-      <Pressable style={styles.primaryBtn} 
-        disabled={!hasValidLocation}
+      <Pressable
+        style={[styles.primaryBtn, !hasValidLocation && styles.disable]}
         onPress={() => navigation.navigate("NewCaseSituation", 
-        { photoCount, location: { latitude: lat, longitude: lng } })  }>
+          { photoCount, location: { latitude: lat, longitude: lng } })}
+        disabled={!hasValidLocation}
+      >
         <Text style={styles.primaryTxt}>Continuar</Text>
       </Pressable>
 
-      {!hasValidLocation && <Text style={styles.hint}>
-        * Se continuar sem selecionar uma localização válida, a localização do caso será definida como (0,0),
-         o que não é desejável. Por favor, selecione uma localização antes de continuar.
-         </Text>}
 
-      <Text style={styles.hint}>* Esta é uma simulação. Em um app real, aqui seria exibido um mapa interativo para selecionar a localização do animal.</Text>
-    </View>
+
+      
+     </View>
   );
 
 
@@ -64,22 +175,70 @@ export function NewCaseLocationScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16,gap: 12 },
-  title: { fontSize: 16, fontWeight: "800", color: "#222" },  
-  small: { color: "#666",},
   
-  mapBox: {
+  mapWrapper: {
     flex: 1,
-    minHeight: 320,
+    borderRadius: 12,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#999",
-    borderRadius: 14,
-    backgroundColor: "#eee",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
+    borderColor: "#ccc",
+    minHeight: 320,
+    position: "relative",
   },
 
-  mapTitle: { color: "#555", fontWeight: "900" },
+  map: {
+    flex: 1,
+  },
+
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+    gap: 10,
+  },
+
+  loadindTxt: {
+    fontSize: 16,
+    color: "#333",
+  },
+
+  hintBanner: {
+    backgroundColor: "#fffae6",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    position: "absolute",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ffe58f",
+  },
+
+  hintBannerTxt: {
+    fontSize: 12,
+    color: "#fff",
+    textAlign: "center",
+  },
+
+  coords: {
+    fontSize: 12,
+    color: "#555",
+    textAlign: "center",
+    marginTop: 4,
+    fontVariant: ["tabular-nums"],
+  },
+
+  errorTxt: {
+    fontSize: 14,
+    color: "#d00",
+    textAlign: "center",
+    marginTop: 8,
+  },
+  
 
   primaryBtn: {
     flex: 1,
@@ -88,7 +247,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    alignSelf: "stretch",
   },
+
+
   primaryTxt: { color: "#fff", fontWeight: "800" },
 
   secondaryBtn: {
@@ -101,13 +263,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
+
   secondaryTxt: { color: "#222", fontWeight: "800" },
 
-  hint: {
-    fontSize: 12,
-    color: "#777",
-    textAlign: "center",
-    marginTop: 6,
+  disable: {
+    backgroundColor: "#ccc",
+    borderColor: "#aaa",
   },
  }
 );
