@@ -5,7 +5,8 @@ import { NewCasePhotoScreen } from "../screens/NewCasePhotoScreen";
 import { NewCaseLocationScreen } from "../screens/NewCaseLocationScreen";
 import { NewCaseSituationScreen } from "../screens/NewCaseSituationScreen";
 import { CaseSuccessScreen } from "../screens/CaseSuccessScreen";
-import { CaseDetailsScreen } from "../screens/CaseDetailsScreen";
+import CaseDetailsScreen from "../screens/CaseDetailsScreen";
+
 
 export type RootStackParamList = {
   Map: undefined;

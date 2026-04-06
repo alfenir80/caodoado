@@ -7,6 +7,8 @@ import { useAppStore } from "../store/AppStore";
 import type { CaseStatus } from "../types/case";
 import { CaseItem } from '../types/case';
 
+type Props = NativeStackScreenProps<RootStackParamList, "CaseDetails">;
+
 const STATUS_COLORS: Record<CaseStatus, string> = {
   ABERTO: "red",
   EM_ANDAMENTO: "orange",
@@ -30,7 +32,7 @@ function formatDate(dateString: string) {
   });
 }
 
-type Props = NativeStackScreenProps<RootStackParamList, "CaseDetails">;
+
 
 export default function CaseDetailsScreen({ route }: Props) {
   const { caseId } = route.params;
