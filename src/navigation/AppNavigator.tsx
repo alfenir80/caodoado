@@ -3,9 +3,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MapScreen } from "../screens/MapScreen";
 import { NewCasePhotoScreen } from "../screens/NewCasePhotoScreen";
 import { NewCaseLocationScreen } from "../screens/NewCaseLocationScreen";
-import { NewCaseSituationScreen } from "../screens/NewCaseSituationScreen";
+import NewCaseSituationScreen from "../screens/NewCaseSituationScreen";
 import { CaseSuccessScreen } from "../screens/CaseSuccessScreen";
 import CaseDetailsScreen from "../screens/CaseDetailsScreen";
+import { TextStyle } from "react-native";
 
 
 export type RootStackParamList = {
@@ -22,7 +23,19 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const AppNavigator = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerTitleAlign: "center",
+        headerStyle: {
+          backgroundColor: "#fff",
+        },
+        headerTintColor: "#7b2fbe",
+        headerTitleStyle: {
+          fontWeight: "700" as const,
+          color: "#1a1523"
+        },
+      }}
+    >
       <Stack.Screen name="Map" component={MapScreen} 
         options={{ title: "Mapa"}}/>
       <Stack.Screen name="NewCasePhoto" component={NewCasePhotoScreen}
