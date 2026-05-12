@@ -1,304 +1,315 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable,
-  Image, Alert, FlatList, ActivityIndicator} from "react-native";
+import {
+    View, Text, StyleSheet, Image, FlatList,
+    Pressable, Alert,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../store/AppStore";
-import { SectionBase } from "react-native/types_generated/index";
+import { colors, typography, spacing, borderRadius, shadows, zIndex } from "./themes";
+import { CaseItem } from '../types/case';
+import { Button } from  "../components/UI";
+import { PreventRemoveProvider } from "@react-navigation/native";
 
 type Props = NativeStackScreenProps<RootStackParamList, "NewCasePhoto">;
 
 const MAX_PHOTOS = 3;
 
-export function NewCasePhotoScreen({ navigation }: Props) {
-
+export default function NewCasePhotoScreen({ navigation, route }: Props) {
   const { state, dispatch } = useAppStore();
-  const photoUris = state.draft.photoUris;
+  const photoUris = state.draft.photoUris || [];
   const canAddMore = photoUris.length < MAX_PHOTOS;
 
   const handleCamera = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permissão necessária", "Precisamos de acesso à câmera para tirar fotos.");
+    if (!canAddMore) {
+      Alert.alert("Limite de fotos", `Você pode adicionar no máximo ${MAX_PHOTOS} fotos.`);
       return;
     }
+   
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão negada", "Precisamos de acesso à câmera para tirar fotos.");
+        return;
+      }
+      
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: "images",
+        quality: 0.7,
+        allowsEditing: true,
+        aspect: [4, 3],
+        base64: false,
+      });
 
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: "images",
-      quality: 0.7,
-      base64: false,
-      allowsEditing: true,
-      aspect: [4, 3],
-    });
-
-    if (!result.canceled && result.assets[0].uri) {
-      dispatch({ type: "draft/addPhoto", photoURI: result.assets[0].uri });   
-    }
+      if (!result.canceled && result.assets[0].uri) {
+        const newUri = result.assets[0].uri;
+        dispatch({ type: "draft/addPhoto", photoURI: newUri });
+      }
   };
 
   const handleGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permissão necessária", "Precisamos de acesso à galeria para escolher fotos.");
+    if (!canAddMore) {
+      Alert.alert("Limite de fotos", `Você pode adicionar no máximo ${MAX_PHOTOS} fotos.`);
       return;
     }
-    
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      quality: 0.7,
-      base64: false,
-      allowsEditing: true,
-      aspect: [4, 3],
-      allowsMultipleSelection: true,
-      selectionLimit: MAX_PHOTOS - photoUris.length,
-    });
 
-    if (!result.canceled) {
-      const selectedUris = result.assets.map(asset => asset.uri);
-      selectedUris.forEach(uri => dispatch({ type: "draft/addPhoto", photoURI: uri }));
-    }
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permissão negada", "Precisamos de acesso à galeria para escolher fotos.");
+        return;
+      }
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        quality: 0.7,
+        allowsEditing: true,
+        aspect: [4, 3],
+        base64: false,
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        const newUri = result.assets[0].uri;
+        dispatch({ type: "draft/addPhoto", photoURI: newUri });
+      }
   };
 
   const handleRemovePhoto = (uri: string) => {
-    Alert.alert("Remover foto", "Deseja remover esta foto?", [
+    Alert.alert("Remover foto", "Tem certeza que deseja remover esta foto?", [
       { text: "Cancelar", style: "cancel" },
       { text: "Remover", style: "destructive", onPress: () => dispatch({ type: "draft/removePhoto", photoURI: uri }) },
     ]);
   };
 
-  const handleContinue = () => {
-    if (photoUris.length === 0) {
-      Alert.alert("Atenção", "Adicione pelo menos uma foto para continuar.");
-      return;
-    }
-    navigation.navigate("NewCaseLocation", {photoCount: photoUris.length});
-  };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Adicionar Fotos</Text>
-      <Text style={styles.subtitle}>
-        Tire até {MAX_PHOTOS} fotos ou escolha da galeria para mostrar a situação do animal.
-      </Text>
-
-      {photoUris.length === 0 ? (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyIcon}>📷</Text>
-          <Text style={styles.emptyTitle}>Nenhuma foto adicionada</Text>
-          <Text style={styles.emptyHint}>Tire uma foto ou escolha da galeria</Text>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Adicionar fotos do caso</Text>
+          <Text style={styles.subtitle}>Tire fotos no local ou escolha da galeria para ajudar na investigação.</Text>
         </View>
-      ) : (
-        <FlatList
-          data={photoUris}
-          renderItem={({ item }) => (
-            <View style={styles.thumbContainer}>
-              <Image source={{ uri: item }} style={styles.thumb} />
-              <Pressable style={styles.removeButton} onPress={() => handleRemovePhoto(item)}>
-                <Text style={styles.removeTxt}>×</Text>
-              </Pressable>
+
+        {/* Área de pré-visualização das fotos */}
+        {photoUris.length === 0 ? (
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyEmoji}>📷</Text>
+            <Text style={styles.emptyTitle}>Nenhuma foto adicionada</Text>
+            <Text style={styles.emptyHint}>Use os botões abaixo para tirar fotos ou escolher da galeria.</Text>
+          </View>
+        ) : (
+          <View style={styles.previewArea}>
+            <FlatList
+              data={photoUris}
+              keyExtractor={(uri) => uri}
+              numColumns={3}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.previewList}
+              renderItem={({ item: uri }) => (
+                <View style={styles.thumbWrap}>
+                  <Image source={{ uri }} style={styles.thumb} />
+                  <Pressable style={styles.removeButton} onPress={() => handleRemovePhoto(uri)}>
+                    <Text style={styles.removeIcon}>×</Text>
+                  </Pressable>
+                </View>
+              )}
+            />
+            <View style={styles.previewFooter}>
+              <Text style={styles.counter}>
+                {photoUris.length} de {MAX_PHOTOS} fotos
+              </Text>
+              {canAddMore && (
+                <Pressable onPress={() => dispatch({ type: "draft/clearPhotos" })}>
+                  <Text style={styles.clearTxt}>Limpar fotos</Text>
+                </Pressable>
+              )}
             </View>
-          )}
-          keyExtractor={(uri) => uri}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.previewList}
-        />
-      )}
+          </View>
+        )}
 
-      <Text style={styles.counter}>{photoUris.length} / {MAX_PHOTOS} fotos</Text>
+        {/* Botões de ação */}
+        <View style={styles.actionRow}>
+          <Button 
+            label="Tirar foto" 
+            icon="📷"
+            variant="secondary"
+            fullWidth={false}
+            onPress={handleCamera} 
+            disabled={!canAddMore}
+            style={styles.actionButton} />
+          <Button 
+            label="Escolher da galeria"
+            icon="🖼️" 
+            variant="secondary"
+            fullWidth={false}
+            onPress={handleGallery} 
+            disabled={!canAddMore}
+            style={styles.actionButton} />
+        </View>
 
-      <View style={styles.row}>
-        <Pressable 
-          style={[styles.primaryButton, !canAddMore && styles.disable]}
-          onPress={handleCamera} 
-          disabled={!canAddMore}
-        >
-          <Text style={styles.primaryButtonText}>Tirar Foto</Text>
-        </Pressable>
-
-        <Pressable 
-          style={[styles.secondaryButton, !canAddMore && styles.disable]} 
-          onPress={handleGallery} 
-          disabled={!canAddMore}
-        >
-          <Text style={styles.secondaryButtonText}>Escolher da Galeria</Text>
-        </Pressable>
+        <View style={{flexDirection: "row", justifyContent: "flex-end", marginTop: spacing.base }}>
+          <Button 
+            label="Próximo" 
+            variant="primary" 
+            onPress={() => navigation.navigate("NewCaseLocation", { photoCount: photoUris.length })} 
+            disabled={photoUris.length === 0} />
+        </View>
       </View>
+    </SafeAreaView>
+  );  
 
-      <Pressable style={styles.clearLink} onPress={() => dispatch({ type: "draft/reset" })}>
-        <Text style={styles.clearLinkText}>Limpar Fotos</Text>
-      </Pressable>
-
-      <Pressable style={[styles.primaryButton, photoUris.length === 0 && styles.disable]} 
-        onPress={handleContinue} 
-        disabled={photoUris.length === 0}
-      >
-        <Text style={styles.primaryButtonText}>Continuar</Text>
-      </Pressable>  
-
-    </View>
-  );
 }
 
-const THUMBNAIL_SIZE = 120;
+const THUMB_SIZE = 110;
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   container: {
     flex: 1,
-    padding: 16,
-    gap: 12,
+    padding: spacing.base,
+    gap: spacing.base,
   },
 
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },  
+
   title: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 16,
+    fontSize: typography.fontSize.large,
+    fontWeight: typography.fontWeight.extrabold,
+    color: colors.textPrimary,
   },
 
   subtitle: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 24,
+    fontSize: typography.fontSize.medium,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
+
+  //Estado vazio - borda tracejada estilo dropzone
 
   emptyBox: {
     flex: 1,
-    minHeight: 240,
-    borderWidth: 1,
-    borderColor: "#ccc",
+    borderWidth: 2,
+    borderColor: colors.surface2,
     borderStyle: "dashed",
-    borderRadius: 14,
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
     justifyContent: "center",
     alignItems: "center",
-    gap: 8,
-    padding: 16,
+    gap: spacing.sm,
+    minHeight: 220,
   },
 
-  emptyIcon: {
-    fontSize: 48,
-    color: "#ccc",
+  emptyEmoji: {
+    fontSize: 52,
   },
 
   emptyTitle: {
-    fontSize: 16,
-    color: "#555",
-    fontWeight: "700",
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.textSecondary,
   },
 
   emptyHint: {
-    fontSize: 12,
-    color: "#999",
+    fontSize: typography.fontSize.small,
+    color: colors.textMuted,
     textAlign: "center",
   },
 
-  previewScroll: {
-    flexGrow: 0,
+  //Lista de fotos - grid de miniaturas com gap e borda arredondada
+
+  previewArea: {
+    flex: 1,
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.sm,    
+    boxShadow: shadows.medium,
   },
 
   previewList: {
-    gap: 10,
-    paddingVertical: 8,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
   },
 
-  thumbContainer: {
-    width: THUMBNAIL_SIZE,
-    height: THUMBNAIL_SIZE,
-    borderRadius: 10,
+  thumbWrap: {
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: borderRadius.md,
     overflow: "hidden",
     position: "relative",
-  },  
-  
+  },
+
   thumb: {
     width: "100%",
     height: "100%",
+    resizeMode: "cover",
   },
 
   removeButton: {
     position: "absolute",
     top: 4,
     right: 4,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    borderRadius: 12,
-    width: 24,
     height: 24,
+    width: 24,
+    borderRadius:borderRadius.full,
+    padding: 4,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    boxShadow: shadows.light,
     justifyContent: "center",
     alignItems: "center",
   },
 
-  removeTxt: {
-    color: "#fff",
+  removeIcon: {
+    color: colors.surface,
     fontSize: 16,
     lineHeight: 16,
-    fontWeight: "bold",
+    fontWeight: typography.fontWeight.bold,
+  },
+
+  previewFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   counter: {
-    fontSize: 12,
-    color: "#888",
-    textAlign: "right",
-    marginTop: -4,
+    fontSize: typography.fontSize.small,
+    color: colors.textMuted,
   },
 
-  row: {
+  countNumber: {
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
+  },
+
+  clearTxt: {
+    fontSize: typography.fontSize.small,
+    color: colors.accent,
+    fontWeight: typography.fontWeight.semibold,
+  },
+
+  //botões de ação - estilo primário e secundário
+
+  actionRow: {
     flexDirection: "row",
-    gap: 12,
-    justifyContent: "center",
+    gap: spacing.sm,
   },
 
-  primaryButton: {
-    backgroundColor: "#007BFF",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+  actionButton: {
+    flex: 1,
+    paddingVertical: spacing.base,
+    borderRadius: borderRadius.md,
     alignItems: "center",
-    alignSelf: "center",
     justifyContent: "center",
-    marginTop: 16,
   },
-
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-
-  secondaryButton: {
-    backgroundColor: "#6c757d",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    alignSelf: "center",
-    justifyContent: "center",
-    marginTop: 8,
-  },
-
-  secondaryButtonText: {
-    color: "#222",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-
-  disable: { opacity: 0.6 },
-
-  clearLink: {
-     alignSelf: "center",
-     paddingVertical: 8,
-     paddingHorizontal: 16,
-     borderRadius: 12,
-     borderWidth: 1,
-     borderColor: "#ccc",
-     marginTop: 12,
-  },
-
-  clearLinkText: {
-    color: "#555",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-}); 
+});
+  
