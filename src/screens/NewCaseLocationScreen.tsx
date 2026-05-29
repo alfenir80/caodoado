@@ -1,189 +1,222 @@
-import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Alert } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator
+} from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../store/AppStore";
+import { Button } from  "../components/UI";
+import { colors, typography, spacing, borderRadius, shadows, zIndex } from "./themes";
 
 type Props = NativeStackScreenProps<RootStackParamList, "NewCaseLocation">;
 
-const DEFAULT_DELTA = { latitudeDelta: 0.01, longitudeDelta: 0.01 };
+const DELTA = { latitudeDelta: 0.01, longitudeDelta: 0.01 };
 
-export function NewCaseLocationScreen({ navigation, route }: Props) {
-  const { state, dispatch } = useAppStore();
+export default function NewCaseLocationScreen({ navigation, route }: Props) {
   const { photoCount } = route.params;
+  const { state, dispatch } = useAppStore();
+  const [loadingGPS, setLoadingGPS] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const mapRef = useRef<MapView>(null);
 
-  const [loadingGPS, setLoadingGPS] = useState(true);
-  const [gpsError, setGPSError] = useState<string | null>(null);
-
-
-  const lat = state.draft.location.latitude;
-  const lng = state.draft.location.longitude;
-
-  const hasValidLocation = lat !== 0 && lng !== 0;
+  const lat = state.draft.location.latitude || -23.55052;
+  const lng = state.draft.location.longitude || -46.633308;
+  const hasLocation = !!state.draft.location.latitude && !!state.draft.location.longitude;
 
   useEffect(() => {
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-          setGPSError("Permissão de localização negada. Por favor, permita o acesso à localização para usar esta funcionalidade.");
+          setErrorMsg("Permissão de localização negada.");
           setLoadingGPS(false);
           return;
         }
 
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Highest,
-        });
-
+        const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
-        dispatch({ type: "draft/setLocation", latitude, longitude });
-
-        // Centralizar o mapa na localização atual
-        if (mapRef.current) {
-          mapRef.current.animateToRegion({
-            latitude,
-            longitude,
-            ...DEFAULT_DELTA,
-          });
-        }
+        dispatch({
+          type: "draft/setLocation",
+          latitude,
+          longitude,
+        });
+        mapRef.current?.animateToRegion({
+          latitude,
+          longitude,
+          ...DELTA,
+        }, 1000);
       } catch (error) {
-        setGPSError("Erro ao obter localização. Por favor, tente novamente.");
+        setErrorMsg("Erro ao obter localização.");
       } finally {
         setLoadingGPS(false);
       }
     })();
   }, [dispatch]);
 
-  const handleDragMarker = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+  const handleDragEnd = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
-    dispatch({ type: "draft/setLocation", latitude, longitude });
+    dispatch({
+      type: "draft/setLocation",
+      latitude,
+      longitude,
+    });
   };
 
-  const handleLongPressMap = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+  const handleLongPress = (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
-    dispatch({ type: "draft/setLocation", latitude, longitude });
+    dispatch({
+      type: "draft/setLocation",
+      latitude,
+      longitude,
+    })
     mapRef.current?.animateToRegion({
       latitude,
       longitude,
-      ...DEFAULT_DELTA,
-    }, 400);
+      ...DELTA,
+    }, 1000);
   };
 
-  const handleUseCurrentLocation = async () => {
+  const handleUseGPS = async () => {
     try {
       setLoadingGPS(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permissão de localização negada", "Por favor, permita o acesso à localização para usar esta funcionalidade.");
+        Alert.alert("Permissão de localização negada.");
         return;
       }
 
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Highest,
-      });
-
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.LocationAccuracy.High });
       const { latitude, longitude } = location.coords;
-      dispatch({ type: "draft/setLocation", latitude, longitude });
-
-      // Centralizar o mapa na localização atual
-      if (mapRef.current) {
-        mapRef.current.animateToRegion({
-          latitude,
-          longitude,
-          ...DEFAULT_DELTA,
-        }, 600);
-      }
+      dispatch({
+        type: "draft/setLocation",
+        latitude,
+        longitude,
+      });
+      mapRef.current?.animateToRegion({
+        latitude,
+        longitude,
+        ...DELTA,
+      }, 1000);
     } catch (error) {
-      Alert.alert("Erro", "Erro ao obter localização. Por favor, tente novamente.");
+      Alert.alert("Erro ao obter localização.");
     } finally {
       setLoadingGPS(false);
     }
   };
 
-  const initialRegion: Region = {
-    latitude: hasValidLocation ? lat : -23.55052, // São Paulo como fallback
-    longitude: hasValidLocation ? lng : -46.633308,
-    ...DEFAULT_DELTA,
-  };
-
-
+  const initialRegion: Region = hasLocation
+    ? {
+        latitude: lat,
+        longitude: lng,
+        ...DELTA,
+      }
+    : {
+        latitude: -23.55052,
+        longitude: -46.633308,
+        ...DELTA,
+      };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.mapWrapper}>
-        {loadingGPS && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#333" />
-            <Text style={styles.loadindTxt}>Obtendo localização...</Text>
-          </View>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Onde ocorreu?</Text>
+        </View>
+        <Text style={styles.subtitle}>
+          Arraste o marcador para a localização exata ou toque no mapa para posicioná-lo.
+        </Text>
+
+        <View style={styles.mapWrapper}>
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={initialRegion}
+            onLongPress={handleLongPress}
+          >
+            {hasLocation && (
+              <Marker
+                coordinate={{ latitude: lat, longitude: lng }}
+                draggable
+                onDragEnd={handleDragEnd}
+              />
+            )}
+          </MapView>
+
+          {loadingGPS && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={{ marginTop: spacing.sm, color: colors.textPrimary }}>Obtendo localização...</Text>
+            </View>
+          )}
+
+          {!loadingGPS && (
+            <View style={styles.instructionsBanner}>
+              <Text style={styles.instructionsText}>
+                Toque e segure para posicionar o marcador ou use o botão abaixo para usar sua localização atual.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+        {hasLocation && (
+          <Text style={styles.coordsText}>
+            Latitude: {lat.toFixed(5)}, Longitude: {lng.toFixed(5)}
+          </Text>
         )}
 
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={initialRegion}
-          onLongPress={handleLongPressMap}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-        >
-          {hasValidLocation && (
-            <Marker
-              coordinate={{ latitude: lat, longitude: lng }}
-              draggable
-              onDragEnd={handleDragMarker}
-              pinColor="#444"
-            />
-          )}
-        </MapView>
-
-        <View style={styles.hintBanner}>
-          <Text style={styles.hintBannerTxt}>Arraste o marcador ou toque no mapa para ajustar a localização do caso.</Text>
-        </View>
+        <Button
+          label="Usar minha localização"
+          onPress={handleUseGPS}
+          disabled={loadingGPS}
+          style={styles.button}
+        />
       </View>
-
-      {gpsError && <Text style={styles.errorTxt}>{gpsError}</Text>}
-
-      <Text style={styles.coords}>Lat: {lat.toFixed(6)} | Lng: {lng.toFixed(6)}</Text>
-
-      <Pressable style={styles.secondaryBtn} onPress={handleUseCurrentLocation} disabled={loadingGPS}>
-        <Text style={styles.secondaryTxt}>
-          {loadingGPS ? "Obtendo localização..." : "Usar minha localização atual"}
-        </Text>
-      </Pressable>
-
-      <Pressable
-        style={[styles.primaryBtn, !hasValidLocation && styles.disable]}
-        onPress={() => navigation.navigate("NewCaseSituation", 
-          { photoCount, location: { latitude: lat, longitude: lng } })}
-        disabled={!hasValidLocation}
-      >
-        <Text style={styles.primaryTxt}>Continuar</Text>
-      </Pressable>
-
-
-
-      
-     </View>
+    </SafeAreaView>
   );
-
-
-
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16,gap: 12 },
-  
+  safe : {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+
+  container: {
+    flex: 1,
+    padding: spacing.base,
+    gap: spacing.md,
+  },
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+
+  title: {
+    fontSize: typography.fontSize.large,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textPrimary,
+  },
+
+  subtitle: {
+    fontSize: typography.fontSize.medium,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+
+  //map
+
   mapWrapper: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    minHeight: 320,
-    position: "relative",
+    ...(shadows.medium as any),
   },
 
   map: {
@@ -192,84 +225,47 @@ const styles = StyleSheet.create({
 
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
     justifyContent: "center",
-    zIndex: 10,
-    gap: 10,
+    alignItems: "center",
+    zIndex: zIndex.modal,
   },
 
-  loadindTxt: {
-    fontSize: 16,
-    color: "#333",
-  },
+  //banner roxo semi transparente no rodapé do mapa
 
-  hintBanner: {
-    backgroundColor: "#fffae6",
+  instructionsBanner: {
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    position: "absolute",
+    backgroundColor: "rgba(98, 0, 238, 0.9)",
+    padding: spacing.base,
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ffe58f",
   },
 
-  hintBannerTxt: {
-    fontSize: 12,
-    color: "#fff",
+  instructionsText: {
+    color: colors.white,
+    fontSize: typography.fontSize.medium,
     textAlign: "center",
   },
 
-  coords: {
-    fontSize: 12,
-    color: "#555",
+  coordsText: {
     textAlign: "center",
-    marginTop: 4,
-    fontVariant: ["tabular-nums"],
+    marginTop: spacing.sm,
+    color: colors.textMuted,
+    fontSize: typography.fontSize.small,
+    fontWeight: typography.fontWeight.medium,
   },
 
-  errorTxt: {
-    fontSize: 14,
-    color: "#d00",
+  errorText: {
     textAlign: "center",
-    marginTop: 8,
-  },
-  
-
-  primaryBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    backgroundColor: "#444",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "stretch",
+    marginTop: spacing.sm,
+    color: colors.accent,
+    fontSize: typography.fontSize.small,
+    fontWeight: typography.fontWeight.medium,
   },
 
-
-  primaryTxt: { color: "#fff", fontWeight: "800" },
-
-  secondaryBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#777",  
-    alignItems: "center",
-    justifyContent: "center",
+  button: {
+    marginTop: spacing.base,
   },
-
-
-  secondaryTxt: { color: "#222", fontWeight: "800" },
-
-  disable: {
-    backgroundColor: "#ccc",
-    borderColor: "#aaa",
-  },
- }
-);
+});
