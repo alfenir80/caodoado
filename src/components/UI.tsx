@@ -24,20 +24,21 @@ interface ButtonProps extends PressableProps {
     fullWidth?: boolean;
 }
 
-export const Button: React.FC<ButtonProps> = ({
-    label,
-    variant = "primary",
-    icon,
-    disabled = false,
-    loading = false,
-    fullWidth = true,
-    style,
-    ...rest
-}) => {
+export const Button: React.FC<ButtonProps> = (props: ButtonProps) => {
+    const {
+        label,
+        variant = "primary",
+        icon,
+        disabled = false,
+        loading = false,
+        fullWidth = true,
+        style,
+        ...rest
+    } = props;
 
-    const isDisabled = disabled || loading;
+    const isDisabled: boolean = disabled || loading;
 
-  const variantStyles = {
+  const variantStyles = ({
         primary: {
             backgroundColor: isDisabled ? colors.primary + "80" : colors.primary,
             borderColor: colors.primary,
@@ -62,11 +63,11 @@ export const Button: React.FC<ButtonProps> = ({
             color: colors.white,
             text: colors.white
         },
-    }[variant];
+    } as Record<ButtonVariant, any>)[variant]!;
 
     return (
         <Pressable
-            style={({ pressed }) => [
+            style={({ pressed }: { pressed: boolean }) => [
                 btnStyles.base,
                 { backgroundColor: variantStyles.backgroundColor, borderColor: variantStyles.borderColor }, 
                 fullWidth && btnStyles.fullWidth,
