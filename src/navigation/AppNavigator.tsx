@@ -2,7 +2,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MapScreen } from "../screens/MapScreen";
 import NewCasePhotoScreen from "../screens/NewCasePhotoScreen";
-import { NewCaseLocationScreen } from "../screens/NewCaseLocationScreen";
+import NewCaseLocationScreen from "../screens/NewCaseLocationScreen";
 import NewCaseSituationScreen from "../screens/NewCaseSituationScreen";
 import { CaseSuccessScreen } from "../screens/CaseSuccessScreen";
 import CaseDetailsScreen from "../screens/CaseDetailsScreen";
