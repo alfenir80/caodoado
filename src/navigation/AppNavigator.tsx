@@ -2,7 +2,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { MapScreen } from "../screens/MapScreen";
 import NewCasePhotoScreen from "../screens/NewCasePhotoScreen";
-import { NewCaseLocationScreen } from "../screens/NewCaseLocationScreen";
+import NewCaseLocationScreen from "../screens/NewCaseLocationScreen";
 import NewCaseSituationScreen from "../screens/NewCaseSituationScreen";
 import { CaseSuccessScreen } from "../screens/CaseSuccessScreen";
 import CaseDetailsScreen from "../screens/CaseDetailsScreen";
@@ -12,9 +12,8 @@ import { TextStyle } from "react-native";
 export type RootStackParamList = {
   Map: undefined;
   NewCasePhoto: undefined;
-  NewCaseLocation: { photoCount: number };
-  NewCaseSituation: { photoCount: number; 
-    location: { latitude: number; longitude: number } }; 
+  NewCaseLocation: undefined;
+  NewCaseSituation: undefined;
   CaseSuccess: { caseId: string }; 
   CaseDetails: { caseId: string };
 };
@@ -38,7 +37,7 @@ export const AppNavigator = () => {
     >
       <Stack.Screen name="Map" component={MapScreen} 
         options={{ title: "Mapa"}}/>
-      <Stack.Screen name="NewCasePhoto" component={NewCasePhotoScreen as React.ComponentType<any>}
+      <Stack.Screen name="NewCasePhoto" component={NewCasePhotoScreen}
         options={{ title: "Passo 1/3 - Foto do animal"}}/>
       <Stack.Screen name="NewCaseLocation" component={NewCaseLocationScreen}
         options={{ title: "Passo 2/3 - Localização do animal"}}/>

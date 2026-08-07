@@ -16,7 +16,6 @@ type Props = NativeStackScreenProps<RootStackParamList, "NewCaseLocation">;
 const DELTA = { latitudeDelta: 0.01, longitudeDelta: 0.01 };
 
 export default function NewCaseLocationScreen({ navigation, route }: Props) {
-  const { photoCount } = route.params;
   const { state, dispatch } = useAppStore();
   const [loadingGPS, setLoadingGPS] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -168,12 +167,24 @@ export default function NewCaseLocationScreen({ navigation, route }: Props) {
           </Text>
         )}
 
-        <Button
-          label="Usar minha localização"
-          onPress={handleUseGPS}
-          disabled={loadingGPS}
-          style={styles.button}
-        />
+        <View style={styles.actionRow}>
+          <Button
+            label="Minha localização"
+            variant="secondary"
+            onPress={handleUseGPS}
+            disabled={loadingGPS}
+            style={styles.actionButton}
+            fullWidth={false}
+          />
+          <Button
+            label="Próximo"
+            variant="primary"
+            onPress={() => navigation.navigate("NewCaseSituation")}
+            style={styles.actionButton}
+            fullWidth={false}
+            disabled={!hasLocation || loadingGPS}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -265,7 +276,13 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.medium,
   },
 
-  button: {
+  actionRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
     marginTop: spacing.base,
+  },
+
+  actionButton: {
+    flex: 1,
   },
 });

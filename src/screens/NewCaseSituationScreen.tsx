@@ -88,8 +88,8 @@ export default function NewCaseSituationScreen({ navigation, route }: Props) {
       // Limpa o rascunho
       dispatch({ type: "draft/reset" });
 
-      // Navega para a tela de detalhes do caso recém-criado
-      navigation.replace("CaseDetails", { caseId });
+      // Navega para a tela de sucesso do caso recém-criado
+      navigation.replace("CaseSuccess", { caseId });
     } catch (error) {
       console.error("Erro ao criar caso:", error);
       Alert.alert("Erro", "Ocorreu um erro ao criar o caso. Por favor, tente novamente.");

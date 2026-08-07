@@ -4,6 +4,7 @@ import {
     Pressable, Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { File } from "expo-file-system/next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
@@ -36,9 +37,8 @@ export default function NewCasePhotoScreen({ navigation, route }: Props) {
       
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: "images",
-        quality: 0.7,
-        allowsEditing: true,
-        aspect: [4, 3],
+        quality: 0.4,
+        allowsEditing: false,
         base64: false,
       });
 
@@ -62,9 +62,8 @@ export default function NewCasePhotoScreen({ navigation, route }: Props) {
       
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: "images",
-        quality: 0.7,
-        allowsEditing: true,
-        aspect: [4, 3],
+        quality: 0.4,
+        allowsEditing: false,
         base64: false,
       });
 
@@ -77,7 +76,10 @@ export default function NewCasePhotoScreen({ navigation, route }: Props) {
   const handleRemovePhoto = (uri: string) => {
     Alert.alert("Remover foto", "Tem certeza que deseja remover esta foto?", [
       { text: "Cancelar", style: "cancel" },
-      { text: "Remover", style: "destructive", onPress: () => dispatch({ type: "draft/removePhoto", photoURI: uri }) },
+      { text: "Remover", style: "destructive", onPress: () => {
+          try { new File(uri).delete(); } catch(e) {}
+          dispatch({ type: "draft/removePhoto", photoURI: uri });
+      }},
     ]);
   };
 
@@ -101,7 +103,6 @@ export default function NewCasePhotoScreen({ navigation, route }: Props) {
             <FlatList
               data={photoUris}
               keyExtractor={(uri) => uri}
-              numColumns={3}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.previewList}
@@ -151,7 +152,7 @@ export default function NewCasePhotoScreen({ navigation, route }: Props) {
           <Button 
             label="Próximo" 
             variant="primary" 
-            onPress={() => navigation.navigate("NewCaseLocation", { photoCount: photoUris.length })} 
+            onPress={() => navigation.navigate("NewCaseLocation")} 
             disabled={photoUris.length === 0} />
         </View>
       </View>

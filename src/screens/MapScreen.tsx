@@ -19,7 +19,7 @@ const SP_REGION = {
 };
 
 export const MapScreen: React.FC<Props> = ({ navigation }) => {
-  const { state } = useAppStore();
+  const { state, dispatch } = useAppStore();
   const [region, setRegion] = useState<Region>(SP_REGION);
   const mapRef = useRef<MapView>(null);
 
@@ -64,6 +64,7 @@ export const MapScreen: React.FC<Props> = ({ navigation }) => {
                 longitude: caseItem.location.longitude,
               }}
               pinColor={STATUS_META[caseItem.status as CaseStatus].color}
+              onCalloutPress={() => navigation.navigate("CaseDetails", { caseId: caseItem.id })}
             >
               <Callout tooltip={false}>
                 <View style={styles.callout}>
@@ -77,31 +78,30 @@ export const MapScreen: React.FC<Props> = ({ navigation }) => {
             </Marker> 
           ))}
         </MapView>
-
-        <View style={styles.legend}>
-          <View style={styles.legendRow}>
-            <View style={[styles.legendDot, { backgroundColor: STATUS_META.ABERTO.color }]} />
-            <Text style={styles.legendTxt}>Aberto</Text>
-          </View>
-          <View style={styles.legendRow}>
-            <View style={[styles.legendDot, { backgroundColor: STATUS_META.EM_ANDAMENTO.color }]} />
-            <Text style={styles.legendTxt}>Em andamento</Text>
-          </View>
-          <View style={styles.legendRow}>
-            <View style={[styles.legendDot, { backgroundColor: STATUS_META.RESOLVIDO.color }]} />
-            <Text style={styles.legendTxt}>Resolvido</Text>
-          </View>
-        </View>
-
-        <Pressable style={styles.myLocationButton} onPress={() => mapRef.current?.animateToRegion(region, 1000)}>
-          <View style={styles.myLocationIcon} />
-        </Pressable>
-
-        <Pressable style={styles.fab} onPress={() => navigation.navigate("NewCasePhoto")}>
-          <Text style={styles.fabTxt}>Reportar</Text>
-         {/* <Ionicons name="add" size={20} color={colors.white} /> */}
-         </Pressable>
       </View>
+
+      <View style={styles.legend}>
+        <View style={styles.legendRow}>
+          <View style={[styles.legendDot, { backgroundColor: STATUS_META.ABERTO.color }]} />
+          <Text style={styles.legendTxt}>Aberto</Text>
+        </View>
+        <View style={styles.legendRow}>
+          <View style={[styles.legendDot, { backgroundColor: STATUS_META.EM_ANDAMENTO.color }]} />
+          <Text style={styles.legendTxt}>Em andamento</Text>
+        </View>
+        <View style={styles.legendRow}>
+          <View style={[styles.legendDot, { backgroundColor: STATUS_META.RESOLVIDO.color }]} />
+          <Text style={styles.legendTxt}>Resolvido</Text>
+        </View>
+      </View>
+
+      <Pressable style={styles.myLocationButton} onPress={() => mapRef.current?.animateToRegion(region, 1000)}>
+        <View style={styles.myLocationIcon} />
+      </Pressable>
+
+      <Pressable style={styles.fab} onPress={() => { dispatch({ type: "draft/reset" }); navigation.navigate("NewCasePhoto"); }}>
+        <Text style={styles.fabTxt}>Reportar</Text>
+      </Pressable>
 
     </View>
   );  
@@ -211,25 +211,26 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    bottom: 20,
-    left: 20,
+    bottom: 32,
+    alignSelf: "center",
     backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.full,
-    shadowColor: shadows.light,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: zIndex.tooltip,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    borderRadius: 30,
+    shadowColor: shadows.medium,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 10,
+    zIndex: 999,
   },
 
   fabTxt: {
-    fontSize: typography.fontSize.xs,
+    fontSize: 18,
     color: colors.white,
     fontWeight: typography.fontWeight.black,
-    marginTop: -2,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
 
 });

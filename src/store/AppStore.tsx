@@ -45,28 +45,7 @@ const initialDraft: NewCaseDraft = {
 };
 
 const initialState: State = {
-  cases: [
-    {
-      id: "1",
-      status: "ABERTO",
-      situation: "Ferido",
-      notes: "Cachorro ferido encontrado na rua.",
-      createdAtISO: "2024-06-01T10:00:00Z",
-      location: {
-        latitude: -23.55052,
-        longitude: -46.633308,
-      },
-      photosCount: 3,
-      assignedTo: {
-        name: "Maria Silva",
-        org: "ONG Animais São Paulo",
-      },
-      updates: [
-        { atISO: "2024-06-02T12:00:00Z", text: "Cachorro levado para clínica veterinária." },
-        { atISO: "2024-06-03T15:30:00Z", text: "Realizados exames, aguardando resultados." },
-      ],
-    }
-  ],
+  cases: [],
   draft: initialDraft,
   lastCreatedCaseID: null,
   loadingCases: false

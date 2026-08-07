@@ -6,20 +6,9 @@ import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../store/AppStore";
 import type { CaseStatus } from "../types/case";
 import { CaseItem } from '../types/case';
+import { colors, typography, spacing, borderRadius, STATUS_META } from "./themes";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CaseDetails">;
-
-const STATUS_COLORS: Record<CaseStatus, string> = {
-  ABERTO: "red",
-  EM_ANDAMENTO: "orange",
-  RESOLVIDO: "green",
-};
-
-const STATUS_LABELS: Record<CaseStatus, string> = {
-  ABERTO: "Aberto",
-  EM_ANDAMENTO: "Em atendimento",
-  RESOLVIDO: "Resolvido",
-};
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -50,8 +39,8 @@ export default function CaseDetailsScreen({ route }: Props) {
   return (
     <ScrollView style={styles.scroll}>
       <View style={styles.content}>
-        <View style={[styles.badge, { backgroundColor: STATUS_COLORS[item.status] }]}>
-          <Text style={styles.badgeText}>{STATUS_LABELS[item.status]}</Text>
+        <View style={[styles.badge, { backgroundColor: STATUS_META[item.status].surface }]}>
+          <Text style={[styles.badgeText, { color: STATUS_META[item.status].color }]}>{STATUS_META[item.status].label}</Text>
         </View>
         <Text style={styles.situation}>{item.situation}</Text>
         <Text style={styles.id}>ID: {item.id}</Text>
@@ -80,7 +69,7 @@ export default function CaseDetailsScreen({ route }: Props) {
                 longitude: item.location.longitude,
               }}
               title={item.situation}
-              pinColor={STATUS_COLORS[item.status]}
+              pinColor={STATUS_META[item.status].color}
             />
           </MapView>
         </View>
@@ -143,77 +132,76 @@ export default function CaseDetailsScreen({ route }: Props) {
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
   },
   content: {
-    padding: 20,
-    gap: 15,
-    paddingBottom: 40,
+    padding: spacing.lg,
+    gap: spacing.md,
+    paddingBottom: spacing.xxxl,
   },
   
   notFound: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: spacing.lg,
   },
   notFoundText: {
-    fontSize: 18,
-    color: "#666",
+    fontSize: typography.fontSize.large,
+    color: colors.textSecondary,
     textAlign: "center",
   },
   
   badge: {
     alignSelf: "flex-start",
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
   },
   
   badgeText: {
-    color: "#fff",
-    fontWeight: "900",
-    fontSize: 14,
+    fontWeight: typography.fontWeight.black,
+    fontSize: typography.fontSize.small,
   },
 
   id: {
-    fontSize: 13,
-    fontWeight: "bold",
-    color: "#999",
-    marginTop: 4,
+    fontSize: typography.fontSize.small,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
 
   situation: {
-    fontSize: 22,
-    color: "#222",
-    fontWeight: "bold",
+    fontSize: typography.fontSize.xlarge,
+    color: colors.textPrimary,
+    fontWeight: typography.fontWeight.bold,
   },
 
   date: {
-    fontSize: 14,
-    color: "#aaa",
+    fontSize: typography.fontSize.small,
+    color: colors.textSecondary,
   },
 
   divider: {
     height: 1,
-    backgroundColor: "#eee",
-    marginVertical: 8,
+    backgroundColor: colors.border,
+    marginVertical: spacing.sm,
   },
 
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#888",
+    fontSize: typography.fontSize.small,
+    fontWeight: typography.fontWeight.extrabold,
+    color: colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: 1.5,
   },
 
   mapWrapper: {
     height: 180,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: colors.border,
   },
 
   map: {
@@ -223,35 +211,35 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
+    gap: spacing.sm,
     alignItems: "flex-start",
   },
 
   infoLabel: {
-    fontSize: 14,
-    color: "#999",
+    fontSize: typography.fontSize.base,
+    color: colors.textSecondary,
     flex: 1,
   },
 
   infoValue: {
-    fontSize: 14,
-    color: "#333",
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
     flex: 2,
-    fontWeight: "600",
+    fontWeight: typography.fontWeight.semibold,
     textAlign: "right",
   },
 
   updateRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: spacing.sm,
     alignItems: "flex-start",
   },
 
   updateDot: {
     width: 10,
     height: 10,
-    borderRadius: 5,
-    backgroundColor: "#444",
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary,
     marginTop: 6,
   },
 
@@ -261,13 +249,13 @@ const styles = StyleSheet.create({
   },
 
   updateTitle: {
-    fontSize: 14,
-    color: "#333",
-    fontWeight: "600",
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    fontWeight: typography.fontWeight.semibold,
   },
 
   updateDate: {
-    fontSize: 12,
-    color: "#999",
+    fontSize: typography.fontSize.small,
+    color: colors.textMuted,
   },
 });
