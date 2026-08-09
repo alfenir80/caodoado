@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
 
   check: {
-    color: colors.primary,
+    color: colors.status.statusResolvido,
     fontSize: 50,
     fontWeight: typography.fontWeight.black,
   },

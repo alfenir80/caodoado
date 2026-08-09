@@ -1,4 +1,5 @@
-export type CaseStatus = "ABERTO" | "EM_ANDAMENTO" | "RESOLVIDO";
+export type CaseStatus = "ABERTO" | "EM_ANDAMENTO" | "RESOLVIDO" | "CANCELADO" 
+| "DUPLICADO" | "DESCONHECIDO" | "RESOLVIDO" ;
 
 export type CaseSituation = "Ferido" | "Perdido" | "Abandonado" | "Maus tratos";
 

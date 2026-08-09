@@ -4,8 +4,7 @@ import MapView, { Marker } from "react-native-maps";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../store/AppStore";
-import type { CaseStatus } from "../types/case";
-import { CaseItem } from '../types/case';
+import { Badge } from "../components/UI";
 import { colors, typography, spacing, borderRadius, STATUS_META } from "./themes";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CaseDetails">;
@@ -36,12 +35,20 @@ export default function CaseDetailsScreen({ route }: Props) {
     );
   }
 
+  const statusMeta = STATUS_META[item.status] || {
+    label: "Desconhecido",
+    color: colors.textSecondary,
+    surface: colors.border,
+  };
+
   return (
     <ScrollView style={styles.scroll}>
       <View style={styles.content}>
-        <View style={[styles.badge, { backgroundColor: STATUS_META[item.status].surface }]}>
-          <Text style={[styles.badgeText, { color: STATUS_META[item.status].color }]}>{STATUS_META[item.status].label}</Text>
-        </View>
+        <Badge
+          label={statusMeta.label}
+          surface={statusMeta.surface}
+          color={statusMeta.color}
+        />
         <Text style={styles.situation}>{item.situation}</Text>
         <Text style={styles.id}>ID: {item.id}</Text>
         <Text style={styles.date}>Criado em: {formatDate(item.createdAtISO)}</Text>

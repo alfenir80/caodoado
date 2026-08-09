@@ -2,6 +2,8 @@
 // Paleta: Roxo rico + Coral como acento + Fundo creme quente
 // Estilo: Colorido e acolhedor | Bordas levemente arredondadas
 
+import { CaseStatus } from '../../types/case';
+
 
 export const colors = {
     primary: "#6A0DAD", // Roxo rico
@@ -118,7 +120,7 @@ export const zIndex = {
 };
 
 
-export type CaseStatus = "ABERTO" | "EM_ANDAMENTO" | "RESOLVIDO" | "FECHADO";
+export type { CaseStatus } from '../../types/case';
 
 export const STATUS_META: Record<CaseStatus, { 
      label: string; color: string; surface: string, pinColor: string
@@ -126,5 +128,7 @@ export const STATUS_META: Record<CaseStatus, {
     ABERTO: { label: "Aberto", color: colors.status.statusAberto, surface: colors.status.statusAbertoSurface, pinColor: colors.status.statusAberto },
     EM_ANDAMENTO: { label: "Em Andamento", color: colors.status.statusEmAndamento, surface: colors.status.statusEmAndamentoSurface, pinColor: colors.status.statusEmAndamento },
     RESOLVIDO: { label: "Resolvido", color: colors.status.statusResolvido, surface: colors.status.statusResolvidoSurface, pinColor: colors.status.statusResolvido },
-    FECHADO: { label: "Fechado", color: colors.status.statusFechado, surface: colors.status.statusFechadoSurface, pinColor: colors.status.statusFechado },
-};
+    CANCELADO: { label: "Cancelado", color: colors.status.statusFechado, surface: colors.status.statusFechadoSurface, pinColor: colors.status.statusFechado },
+    DUPLICADO: { label: "Duplicado", color: colors.status.statusFechado, surface: colors.status.statusFechadoSurface, pinColor: colors.status.statusFechado },
+    DESCONHECIDO: { label: "Desconhecido", color: colors.status.statusFechado, surface: colors.status.statusFechadoSurface, pinColor: colors.status.statusFechado },
+  }

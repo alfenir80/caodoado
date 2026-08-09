@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState} from "react";
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from "react-native";
 import MapView, { Marker, Region, Callout } from "react-native-maps";
 import * as Location from "expo-location";
+import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../store/AppStore";
@@ -101,6 +102,7 @@ export const MapScreen: React.FC<Props> = ({ navigation }) => {
 
       <Pressable style={styles.fab} onPress={() => { dispatch({ type: "draft/reset" }); navigation.navigate("NewCasePhoto"); }}>
         <Text style={styles.fabTxt}>Reportar</Text>
+        <Ionicons name="add" size={24} color={colors.white} style={{ marginLeft: spacing.sm }} />
       </Pressable>
 
     </View>
