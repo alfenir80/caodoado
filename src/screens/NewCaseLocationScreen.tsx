@@ -228,6 +228,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     overflow: "hidden",
     ...(shadows.medium as any),
+    boxShadow: shadows.medium,
   },
 
   map: {

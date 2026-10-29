@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState} from "react";
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from "react-native";
 import MapView, { Marker, Region, Callout } from "react-native-maps";
 import * as Location from "expo-location";
-import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../store/AppStore";
@@ -57,27 +56,30 @@ export const MapScreen: React.FC<Props> = ({ navigation }) => {
         )}
 
         <MapView ref={mapRef} style={styles.map} initialRegion={region} showsUserLocation>
-          {state.cases.map((caseItem) => (
-            <Marker
-              key={caseItem.id}
-              coordinate={{
-                latitude: caseItem.location.latitude,
-                longitude: caseItem.location.longitude,
-              }}
-              pinColor={STATUS_META[caseItem.status as CaseStatus].color}
-              onCalloutPress={() => navigation.navigate("CaseDetails", { caseId: caseItem.id })}
-            >
-              <Callout tooltip={false}>
-                <View style={styles.callout}>
-                  <Text style={styles.calloutSituation}>{caseItem.situation}</Text>
-                  <Badge label={caseItem.status} 
-                    color={STATUS_META[caseItem.status as CaseStatus].color} 
-                    surface={STATUS_META[caseItem.status as CaseStatus].surface}/>                
-                  <Text style={styles.calloutAction}>Toque para ver detalhes</Text>
-                </View>
-              </Callout>
-            </Marker> 
-          ))}
+          {state.cases.map((caseItem) => {
+            const meta = STATUS_META[caseItem.status];                          // ← NOVO
+            return (
+              <Marker
+                key={caseItem.id}
+                coordinate={{
+                  latitude: caseItem.location.latitude,
+                  longitude: caseItem.location.longitude,
+                }}
+                pinColor={meta.pinColor}                                        // ← MUDOU (sem cast)
+                onCalloutPress={() =>                                           // ← NOVO
+                  navigation.navigate("CaseDetails", { caseId: caseItem.id })
+                }
+              >
+                <Callout tooltip={false}>
+                  <View style={styles.callout}>
+                    <Text style={styles.calloutSituation}>{caseItem.situation}</Text>
+                    <Badge label={meta.label} color={meta.color} surface={meta.surface} />  {/* ← label legível */}
+                    <Text style={styles.calloutAction}>Toque para ver detalhes</Text>
+                  </View>
+                </Callout>
+              </Marker>
+            );
+          })}
         </MapView>
       </View>
 
@@ -102,7 +104,7 @@ export const MapScreen: React.FC<Props> = ({ navigation }) => {
 
       <Pressable style={styles.fab} onPress={() => { dispatch({ type: "draft/reset" }); navigation.navigate("NewCasePhoto"); }}>
         <Text style={styles.fabTxt}>Reportar</Text>
-        <Ionicons name="add" size={24} color={colors.white} style={{ marginLeft: spacing.sm }} />
+        <Text style={styles.fabIcon}>+</Text>
       </Pressable>
 
     </View>
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     padding: spacing.sm,
     borderRadius: borderRadius.md,
-    shadowColor: shadows.light,
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -196,7 +198,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     padding: spacing.sm,
     borderRadius: borderRadius.full,
-    shadowColor: shadows.light,
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -228,11 +230,17 @@ const styles = StyleSheet.create({
   },
 
   fabTxt: {
-    fontSize: 18,
+    fontSize: typography.fontSize.base,
     color: colors.white,
-    fontWeight: typography.fontWeight.black,
-    textTransform: "uppercase",
-    letterSpacing: 1,
+    fontWeight: typography.fontWeight.bold,
+  },
+
+  fabIcon: {
+    marginLeft: spacing.sm,
+    fontSize: 24,
+    lineHeight: 24,
+    color: colors.white,
+    fontWeight: typography.fontWeight.bold,
   },
 
 });

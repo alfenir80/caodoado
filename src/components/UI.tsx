@@ -42,26 +42,22 @@ export const Button: React.FC<ButtonProps> = (props: ButtonProps) => {
         primary: {
             backgroundColor: isDisabled ? colors.primary + "80" : colors.primary,
             borderColor: colors.primary,
-            color: colors.white,
-            text: colors.white,
+            foregroundColor: colors.white,
         },
         secondary: {
             backgroundColor: "transparent",
             borderColor: isDisabled ? colors.primary + "80" : colors.primary,
-            color: isDisabled ? colors.primary + "80" : colors.primary,
-            text: colors.white
+            foregroundColor: isDisabled ? colors.primary + "80" : colors.primary,
         },
         ghost: {
             backgroundColor: "transparent",
             borderColor: "transparent",
-            color: isDisabled ? colors.primary + "80" : colors.primary,
-            text: colors.white
+            foregroundColor: isDisabled ? colors.primary + "80" : colors.primary,
         },
         danger: {
             backgroundColor: isDisabled ? colors.accentSurface + "80" : colors.accent,
             borderColor: colors.accentLight,
-            color: colors.white,
-            text: colors.white
+            foregroundColor: isDisabled ? colors.accentSurface + "80" : colors.accentLight,
         },
     } as Record<ButtonVariant, any>)[variant]!;
 
@@ -79,11 +75,11 @@ export const Button: React.FC<ButtonProps> = (props: ButtonProps) => {
             {...rest}
         >
             {loading ? (
-                <ActivityIndicator size="small" color={variantStyles.text} />
+                <ActivityIndicator size="small" color={variantStyles.foregroundColor} />
             ) : (
                 <View style={btnStyles.inner}>
-                    {icon && <Text style={[btnStyles.icon, { color: variantStyles.color, marginRight: label ? spacing.sm : 0 }]}>{icon}</Text>}
-                    <Text style={[btnStyles.label, { color: variantStyles.text }]}>{label}</Text>
+                    {icon && <Text style={[btnStyles.icon, { color: variantStyles.foregroundColor, marginRight: label ? spacing.sm : 0 }]}>{icon}</Text>}
+                    <Text style={[btnStyles.label, { color: variantStyles.foregroundColor }]}>{label}</Text>
                 </View>
             )}
         </Pressable>
@@ -96,11 +92,12 @@ const btnStyles = StyleSheet.create({
         paddingVertical: spacing.sm,
         paddingHorizontal: spacing.lg,
         borderRadius: borderRadius.md,
+        borderWidth: 1,
         alignItems: "center",
         justifyContent: "center",
         flexDirection: "row",
         minHeight: 44,
-        shadowColor: shadows.medium,
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -183,7 +180,7 @@ const cardStyles = StyleSheet.create({
         backgroundColor: colors.surface,
         borderRadius: borderRadius.md,
         padding: spacing.md,
-        shadowColor: shadows.light,
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 1 },
         borderWidth: 1,
         borderColor: colors.primary + "20",

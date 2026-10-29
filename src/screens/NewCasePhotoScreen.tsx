@@ -104,6 +104,7 @@ export default function NewCasePhotoScreen({ navigation, route }: Props) {
               data={photoUris}
               keyExtractor={(uri) => uri}
               horizontal
+              style={styles.previewListWrapper}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.previewList}
               renderItem={({ item: uri }) => (
@@ -119,11 +120,9 @@ export default function NewCasePhotoScreen({ navigation, route }: Props) {
               <Text style={styles.counter}>
                 {photoUris.length} de {MAX_PHOTOS} fotos
               </Text>
-              {canAddMore && (
                 <Pressable onPress={() => dispatch({ type: "draft/clearPhotos" })}>
                   <Text style={styles.clearTxt}>Limpar fotos</Text>
                 </Pressable>
-              )}
             </View>
           </View>
         )}
@@ -175,8 +174,6 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: spacing.xs,
   },  
 
@@ -234,9 +231,11 @@ const styles = StyleSheet.create({
     boxShadow: shadows.medium,
   },
 
+  previewListWrapper: {
+    flexGrow: 0,
+  },
+
   previewList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
